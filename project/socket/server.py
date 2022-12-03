@@ -1,56 +1,95 @@
 import socket
-import threading
+from threading import Thread
+import atexit
+import elgamal_mpc
+import time
 
-HEADER = 64
-FORMAT = 'utf-8'
-LOCALHOST = "127.0.0.1"
-PORT = 1234
-ADDR = (LOCALHOST, PORT)
-DISCONNECT_MSG = "[DISCONNECTED]"
+host = '127.0.0.1'
+port = 4444
 
-c_list = []
+s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+s.bind((host, port))
+s.listen(4)
 
-server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-server.bind(ADDR)
+def handleExit():
+    broadcast('SHUTDOWN', '')
+    s.close()
 
-def send(msg, conn):
-    msg = str(msg).encode(FORMAT)
-    msg_length = len(msg)
-    send_length = str(msg_length).encode(FORMAT)
-    send_length += b' ' * (HEADER - len(send_length))
-    conn.send(send_length)
-    conn.send(msg)
+atexit.register(handleExit)
 
-def handle_client(conn, adr):
-    print(f"Connected: {adr}")
-    
-    connected = True
-    while connected:
-        msg_length = conn.recv(HEADER).decode(FORMAT)
-        if msg_length:
-            msg_length = int(msg_length)
-            msg = conn.recv(msg_length).decode(FORMAT)
-            if msg == DISCONNECT_MSG:
-                connected = False
+players = {}
+n_players = 0
 
-            print(f"[{adr}]: {msg}")
-        
-        send_msg = input(f"Server input to {adr} > ")
-        if send_msg != "":
-            send(send_msg, conn)
-        
+client = {}
+n_clients = 0
 
+def getClient():
+    while True:
+        conn, addr = s.accept()
+        Thread(target = handleClient, args = (conn, )).start()
+
+def handleClient(conn):
+    global n_players
+    global n_clients
+    global client
+    global players
+    typ = conn.recv(512).decode('utf-8')
+    name = 'none'
+
+    print(typ)
+    if typ == 'player' and n_players < 3:
+        n_players += 1
+        name = 'p' + str(n_players)
+        players[name] = conn
+    elif typ == 'client' and n_clients < 1:
+        n_clients += 1
+        name = 'c'
+        client[name] = conn
+    else:
+        # boot the client (decline the connection)
+        conn.send(bytes('SHUTDOWN', 'utf-8'))
+        conn.close()
+        return
+
+    while True:
+        msg = conn.recv(512).decode('utf-8')
+        print(msg)
+        if not msg:
+            break
+        if msg == '':
+            continue
+        broadcast(msg, name+": ")
+
+    if typ == 'client':
+        n_clients -= 1
+        client.pop(name)
+    elif typ == 'player':
+        n_players -= 1
+        players.pop(name)
+
+    conn.send(bytes('SHUTDOWN', 'utf-8'))
     conn.close()
 
-def start():
-    server.listen(5)
-    while True:
-        conn, adr = server.accept()
-        thread = threading.Thread(target=handle_client, args=(conn,adr))
-        thread.start()
-        print(f"Connection #{threading.active_count()-1}")
-        c_list.append(conn)
+def broadcast(msg, prefix):
+    for sock in players:
+        players[sock].send(bytes(prefix + msg,'utf-8'))
+    for sock in client:
+        client[sock].send(bytes(prefix + msg,'utf-8'))
 
-print("Starting...")
-start()
+print('Started the Server')
+Thread(target = getClient).start()
 
+# Not sure if this would allow us to wait until
+# we get 3 player connections and then start the keygen
+# we might need another thread or something
+#while not (n_players == 3):
+    #continue
+
+# this would be all the stuff in the jupyter notebook
+# 1. if client connects and pays, do the following
+    # keygen, get shares
+    # broadcast pubkey and send individual shares and encrypted messages
+    # get enc message and key shares from p1 and p2
+    # calculate m1 * m2
+    # get enc message and key share from p3
+    # calculate (m1 * m2) + m3
