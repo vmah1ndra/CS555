@@ -85,11 +85,28 @@ Thread(target = getClient).start()
 #while not (n_players == 3):
     #continue
 
-# this would be all the stuff in the jupyter notebook
-# 1. if client connects and pays, do the following
-    # keygen, get shares
-    # broadcast pubkey and send individual shares and encrypted messages
-    # get enc message and key shares from p1 and p2
-    # calculate m1 * m2
-    # get enc message and key share from p3
-    # calculate (m1 * m2) + m3
+#key = elgamal_mpc.keygen()
+#pub = key.pk
+#priv = key.sk
+#shares = sharing.secret_int_to_points(priv, 2, 3)
+
+# TODO: broadcast public (object) and send individual shares and encrypted messages
+
+#m1 = random.randrange(99999)
+#m2 = random.randrange(99999)
+#m3 = random.randrange(99999)
+
+#a1, b1 = pub.encrypt(m1)
+#a2, b2 = pub.encrypt(m2)
+#tmp = key.decrypt(a1 * a2, b1 * b2)
+#a3, b3 = pub.encrypt(pow(pub.g, tmp, pub.p))
+#a4, b4 = pub.encrypt(pow(pub.g, m3, pub.p))
+
+#tmp = key.decrypt(a3 * a4, b3 * b4)
+#m1m2m3 = -1
+#for i in range(1, 2 ** 64):
+    #if (pow(pub.g, i, pub.p) == tmp):
+        #m1m2m3 = i
+        #break
+
+# send m1m2m3 to client if they pay money
