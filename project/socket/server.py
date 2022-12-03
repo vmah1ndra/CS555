@@ -96,7 +96,8 @@ def mpc():
     while True:
         if n_clients == 1:
             break
-    
+            
+    client['c'].send(bytes(m1m2m3, 'utf-8'))
 
 print('Started the Server')
 Thread(target = getClient).start()
