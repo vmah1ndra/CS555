@@ -3,9 +3,10 @@ from threading import Thread
 import atexit
 import elgamal_mpc
 import time
+import random
 
 host = '127.0.0.1'
-port = 4444
+port = 9999
 
 s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 s.bind((host, port))
@@ -85,19 +86,17 @@ def mpc():
     priv = key.sk
     shares = sharing.secret_int_to_points(priv, 2, 3)
 
-    # TODO: broadcast public (object) and send individual shares and encrypted messages
-
     m1 = random.randrange(99999)
     m2 = random.randrange(99999)
     m3 = random.randrange(99999)
-    
+
     m1m2m3 = (m1 * m2) + m3
-    
+
     while True:
         if n_clients == 1:
             break
             
-    client['c'].send(bytes(m1m2m3, 'utf-8'))
+    client['c'].send(bytes(str(m1m2m3), 'utf-8'))
 
 print('Started the Server')
 Thread(target = getClient).start()
