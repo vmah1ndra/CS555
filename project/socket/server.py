@@ -1,7 +1,7 @@
 import socket
 from threading import Thread
 import atexit
-import elgamal_mpc
+from CS555/project/elgamal-mpc import elgamal_mpc
 import time
 
 host = '127.0.0.1'
@@ -85,28 +85,28 @@ Thread(target = getClient).start()
 #while not (n_players == 3):
     #continue
 
-#key = elgamal_mpc.keygen()
-#pub = key.pk
-#priv = key.sk
-#shares = sharing.secret_int_to_points(priv, 2, 3)
+key = elgamal_mpc.keygen()
+pub = key.pk
+priv = key.sk
+shares = sharing.secret_int_to_points(priv, 2, 3)
 
 # TODO: broadcast public (object) and send individual shares and encrypted messages
 
-#m1 = random.randrange(99999)
-#m2 = random.randrange(99999)
-#m3 = random.randrange(99999)
+m1 = random.randrange(99999)
+m2 = random.randrange(99999)
+m3 = random.randrange(99999)
 
-#a1, b1 = pub.encrypt(m1)
-#a2, b2 = pub.encrypt(m2)
-#tmp = key.decrypt(a1 * a2, b1 * b2)
-#a3, b3 = pub.encrypt(pow(pub.g, tmp, pub.p))
-#a4, b4 = pub.encrypt(pow(pub.g, m3, pub.p))
+a1, b1 = pub.encrypt(m1)
+a2, b2 = pub.encrypt(m2)
+tmp = key.decrypt(a1 * a2, b1 * b2)
+a3, b3 = pub.encrypt(pow(pub.g, tmp, pub.p))
+a4, b4 = pub.encrypt(pow(pub.g, m3, pub.p))
 
-#tmp = key.decrypt(a3 * a4, b3 * b4)
-#m1m2m3 = -1
-#for i in range(1, 2 ** 64):
-    #if (pow(pub.g, i, pub.p) == tmp):
-        #m1m2m3 = i
-        #break
+tmp = key.decrypt(a3 * a4, b3 * b4)
+m1m2m3 = -1
+for i in range(1, 2 ** 64):
+    if (pow(pub.g, i, pub.p) == tmp):
+        m1m2m3 = i
+        break
 
-# send m1m2m3 to client if they pay money
+# TODO: send m1m2m3 to client if they pay money
