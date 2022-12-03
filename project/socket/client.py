@@ -1,33 +1,32 @@
 import socket
+from threading import Thread
+import os
 
-HEADER = 64
-FORMAT = 'utf-8'
-LOCALHOST = "127.0.0.1"
-PORT = 1234
-ADDR = (LOCALHOST, PORT)
-DISCONNECT_MSG = "[DISCONNECTED]"
+host = '127.0.0.1'
+port = 4444
 
-client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-client.connect(ADDR)
+s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+s.connect((host, port))
 
-def send(msg):
-    msg = msg.encode(FORMAT)
-    msg_length = len(msg)
-    send_length = str(msg_length).encode(FORMAT)
-    send_length += b' ' * (HEADER - len(send_length))
-    client.send(send_length)
-    client.send(msg)
+def getMessage():
+    while True:
+        data = s.recv(512).decode('utf-8')
+        print(data)
+        if data == 'SHUTDOWN' or not data:
+            s.close()
+            os._exit(1)
+
+print("Are you a player or a client?")
+name = input().lower().strip()
+while name != 'player' and name != 'client':
+    print("Please enter player or client.")
+    name = input().lower().strip()
+s.send(bytes(name, 'utf-8'))
+
+Thread(target = getMessage).start()
 
 while True:
-    send_msg = input("Client input > ")
-    if send_msg != "":
-        send(send_msg)
-    msg_length = client.recv(HEADER).decode(FORMAT)
-    if msg_length:
-        msg_length = int(msg_length)
-        msg = client.recv(msg_length).decode(FORMAT)
-        if msg == DISCONNECT_MSG:
-            connected = False
+    data = input()
+    s.send(bytes(data, 'utf-8'))
 
-        print(f"[{ADDR}]: {msg}")
-        
+s.close()
